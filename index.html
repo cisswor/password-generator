@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 480px;
+            width: 100%;
+            border: 1px solid #334155;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 0.4rem;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Password display */
+        .password-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        #password-output {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #6366f1;
+            word-break: break-all;
+            flex: 1;
+            letter-spacing: 0.05em;
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        .copy-btn.copied {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        /* Strength bar */
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: #0f172a;
+            margin-bottom: 1.8rem;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .strength-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: -1.4rem;
+            margin-bottom: 1.8rem;
+            text-align: right;
+        }
+
+        /* Slider */
+        .option-row {
+            margin-bottom: 1.4rem;
+        }
+
+        .option-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-label span:last-child {
+            color: #6366f1;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #6366f1;
+            cursor: pointer;
+        }
+
+        /* Toggles */
+        .toggles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 1.8rem;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .toggle-item:hover {
+            border-color: #6366f1;
+        }
+
+        .toggle-item span {
+            font-size: 0.88rem;
+            color: #94a3b8;
+        }
+
+        .toggle {
+            width: 36px;
+            height: 20px;
+            background: #334155;
+            border-radius: 10px;
+            position: relative;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle.on {
+            background: #6366f1;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.2s;
+        }
+
+        .toggle.on::after {
+            transform: translateX(16px);
+        }
+
+        /* Generate button */
+        .generate-btn {
+            width: 100%;
+            padding: 0.85rem;
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .generate-btn:hover {
+            opacity: 0.88;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Password Generator</h1>
+        <p class="subtitle">Create a strong, secure password instantly</p>
+
+        <div class="password-box">
+            <span id="password-output">Click generate</span>
+            <button class="copy-btn" onclick="copyPassword()">Copy</button>
+        </div>
+
+        <div class="strength-bar">
+            <div class="strength-fill" id="strength-fill"></div>
+        </div>
+        <div class="strength-label" id="strength-label"></div>
+
+        <div class="option-row">
+            <div class="option-label">
+                <span>Password length</span>
+                <span id="length-value">16</span>
+            </div>
+            <input type="range" min="6" max="32" value="16" id="length-slider"
+                oninput="document.getElementById('length-value').textContent = this.value" />
+        </div>
+
+        <div class="toggles">
+            <div class="toggle-item" onclick="toggleOption('uppercase')">
+                <span>Uppercase</span>
+                <div class="toggle on" id="toggle-uppercase"></div>
+            </div>
+            <div class="toggle-item" onclick="toggleOption('lowercase')">
+                <span>Lowercase</span>
+                <div class="toggle on" id="toggle-lowercase"></div>
+            </div>
+            <div class="toggle-item" onclick="toggleOption('numbers')">
+                <span>Numbers</span>
+                <div class="toggle on" id="toggle-numbers"></div>
+            </div>
+            <div class="toggle-item" onclick="toggleOption('symbols')">
+                <span>Symbols</span>
+                <div class="toggle" id="toggle-symbols"></div>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generatePassword()">Generate Password</button>
+    </div>
+
+    <script>
+        const options = {
+            uppercase: true,
+            lowercase: true,
+            numbers: true,
+            symbols: false
+        };
+
+        const chars = {
+            uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            lowercase: 'abcdefghijklmnopqrstuvwxyz',
+            numbers: '0123456789',
+            symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+        };
+
+        function toggleOption(type) {
+            options[type] = !options[type];
+            document.getElementById('toggle-' + type)
+                .classList.toggle('on', options[type]);
+        }
+
+        function generatePassword() {
+            const length = parseInt(document.getElementById('length-slider').value);
+            let charset = '';
+            for (let key in options) {
+                if (options[key]) charset += chars[key];
+            }
+            if (!charset) {
+                document.getElementById('password-output').textContent = 'Select at least one option';
+                return;
+            }
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset[Math.floor(Math.random() * charset.length)];
+            }
+            document.getElementById('password-output').textContent = password;
+            updateStrength(password);
+        }
+
+        function updateStrength(password) {
+            let score = 0;
+            if (password.length >= 12) score++;
+            if (password.length >= 20) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[a-z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+
+            const fill = document.getElementById('strength-fill');
+            const label = document.getElementById('strength-label');
+
+            if (score <= 2) {
+                fill.style.width = '33%';
+                fill.style.background = '#ef4444';
+                label.textContent = 'Weak';
+                label.style.color = '#ef4444';
+            } else if (score <= 4) {
+                fill.style.width = '66%';
+                fill.style.background = '#f59e0b';
+                label.textContent = 'Medium';
+                label.style.color = '#f59e0b';
+            } else {
+                fill.style.width = '100%';
+                fill.style.background = '#22c55e';
+                label.textContent = 'Strong';
+                label.style.color = '#22c55e';
+            }
+        }
+
+        function copyPassword() {
+            const pwd = document.getElementById('password-output').textContent;
+            if (pwd === 'Click generate' || pwd === 'Select at least one option') return;
+            navigator.clipboard.writeText(pwd);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = 'Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>
